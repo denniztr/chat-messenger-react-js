@@ -1,5 +1,7 @@
 import Image from 'next/image';
 
+import AuthForm from './components/auth-form';
+
 export default function Home() {
   return (
     <div
@@ -31,8 +33,11 @@ export default function Home() {
             tracking-tight
             text-gray-900
           "
-        >Sign in to your account</h2>
+        >
+          Sign in to your account
+        </h2>
       </div>
+      <AuthForm />
     </div>
   );
 }
