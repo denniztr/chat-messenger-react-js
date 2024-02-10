@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import ToasterContext from './context/toaster-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} font-roboto`}>{children}</body>
+      <body className={`${inter.className} font-roboto`}>
+        <ToasterContext />
+        {children}
+      </body>
     </html>
   );
 }
