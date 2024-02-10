@@ -1,5 +1,6 @@
 'use client';
 
+import axios from 'axios';
 import { useCallback, useState } from 'react';
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
 import { BsGithub, BsGoogle } from 'react-icons/bs';
@@ -38,7 +39,7 @@ export default function AuthForm() {
     setIsLoading(true);
 
     if (variant === 'REGISTER') {
-      // axios register
+      axios.post('/api/register', data);
     }
 
     if (variant === 'LOGIN') {
@@ -73,7 +74,13 @@ export default function AuthForm() {
       >
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {variant === 'REGISTER' && (
-            <Input id="name" label="Name" register={register} errors={errors} disabled={isLoading} />
+            <Input
+              id="name"
+              label="Name"
+              register={register}
+              errors={errors}
+              disabled={isLoading}
+            />
           )}
           <Input
             id="email"
