@@ -24,7 +24,8 @@ const MobileItem: React.FC<MobileItemProps> = ({
     <Link
       onClick={handleClick}
       href={href}
-      className={clsx(`
+      className={clsx(
+        `
       group
       flex
       gap-x-3
@@ -37,9 +38,11 @@ const MobileItem: React.FC<MobileItemProps> = ({
       text-gray-500
       hover:text-black
       hover:bg-gray-100
-    `)}
+    `,
+        active && 'bg-gray-100 text-black'
+      )}
     >
-      <Icon />
+      <Icon className="h-6 w-6" />
     </Link>
   );
 };
