@@ -10,7 +10,7 @@ import useConversation from '@/app/hooks/useConversation';
 import MessageInput from './message-input';
 
 const Form = () => {
-  const conversationId = useConversation();
+  const { conversationId } = useConversation();
 
   const {
     register,
@@ -25,7 +25,7 @@ const Form = () => {
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setValue('message', '', { shouldValidate: true });
-    axios.post('api/messages', {
+    axios.post('/api/messages', {
       ...data,
       conversationId,
     });
