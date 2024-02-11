@@ -24,7 +24,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentUser }) => {
         lg:left-0
         lg:z-40
         lg:w-20
-        xl:p-6
         lg:overflow-y-auto
         lg:bg-white
         lg:border-r-[1px]
@@ -63,7 +62,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentUser }) => {
           ))}
         </ul>
       </nav>
-      <nav 
+      <nav
         className="
           mt-4 
           flex 
