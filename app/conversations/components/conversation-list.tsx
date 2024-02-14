@@ -1,17 +1,20 @@
-'use client';
+"use client";
 
-import clsx from 'clsx';
+import clsx from "clsx";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { MdOutlineGroupAdd } from 'react-icons/md';
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { MdOutlineGroupAdd } from "react-icons/md";
 
-import { FullConversationType } from '@/app/types';
-import useConversation from '@/app/hooks/useConversation';
-
-import ConversationBox from './conversation-box';
+import { FullConversationType } from "@/app/types";
+import useConversation from "@/app/hooks/useConversation";
 import GroupChatModal from "@/app/conversations/components/group-chat-modal";
-import {User} from "@prisma/client";
+import { User } from "@prisma/client";
+import { pusherClient } from "@/app/libs/pusher";
+
+import ConversationBox from "./conversation-box";
+import { find } from "lodash";
 
 interface ConversationListProps {
   initialItems: FullConversationType[];
@@ -19,9 +22,10 @@ interface ConversationListProps {
 }
 
 const ConversationList: React.FC<ConversationListProps> = ({
-    initialItems,
-    users
+  initialItems,
+  users,
 }) => {
+  const session = useSession();
   const [items, setItems] = useState(initialItems);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,12 +33,74 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   const { conversationId, isOpen } = useConversation();
 
+  const pusherKey = useMemo(() => {
+    return session.data?.user?.email;
+  }, [session.data?.user?.email]);
+
+  useEffect(() => {
+    if (!pusherKey) {
+      return;
+    }
+
+    pusherClient.subscribe(pusherKey);
+
+    const newHandler = (conversation: FullConversationType) => {
+      setItems((current) => {
+        if (find(current, { id: conversationId })) {
+          return current;
+        }
+
+        return [conversation, ...current];
+      });
+    };
+
+    const updateHandler = (conversation: FullConversationType) => {
+      setItems((current) =>
+        current.map((currentConversation) => {
+          if (currentConversation.id === conversation.id) {
+            return {
+              ...currentConversation,
+              messages: conversation.messages,
+            };
+          }
+
+          return currentConversation;
+        }),
+      );
+    };
+
+    const removeHandler = (conversation: FullConversationType) => {
+      setItems((current) => {
+        return [...current.filter((convo) => convo.id !== conversation.id)];
+      });
+
+      if (conversationId === conversation.id) {
+        router.push("/conversations");
+      }
+    };
+
+    pusherClient.bind("conversation:new", newHandler);
+    pusherClient.bind("conversation:update", updateHandler);
+    pusherClient.bind("conversation:remove", removeHandler);
+
+    return () => {
+      pusherClient.unsubscribe(pusherKey);
+      pusherClient.unbind("conversation:new", newHandler);
+      pusherClient.unbind("conversation:update", updateHandler);
+      pusherClient.unbind("conversation:remove", removeHandler);
+    };
+  }, [pusherKey, conversationId, router]);
+
   return (
-      <>
-        <GroupChatModal users={users} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
-        <aside
-          className={clsx(
-            `
+    <>
+      <GroupChatModal
+        users={users}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+      <aside
+        className={clsx(
+          `
             fixed
             inset-y-0
             pb-20
@@ -46,23 +112,23 @@ const ConversationList: React.FC<ConversationListProps> = ({
             border-r
             border-gray-200
           `,
-            isOpen ? 'hidden' : 'block w-full left-0'
-          )}
-        >
-          <div className="px-5">
-            <div className="flex justify-between mb-4 pt-4">
-              <div
-                className="
+          isOpen ? "hidden" : "block w-full left-0",
+        )}
+      >
+        <div className="px-5">
+          <div className="flex justify-between mb-4 pt-4">
+            <div
+              className="
                 text-2xl
                 font-bold
                 text-neutral-800
                 "
-              >
-                Messages
-              </div>
-              <div
-                  onClick={() => setIsModalOpen(true)}
-                className="
+            >
+              Messages
+            </div>
+            <div
+              onClick={() => setIsModalOpen(true)}
+              className="
                   rounded-md
                   p-2
                   bg-gray-100
@@ -71,20 +137,20 @@ const ConversationList: React.FC<ConversationListProps> = ({
                   hover:opacity-75
                   transition
                 "
-              >
-                <MdOutlineGroupAdd size={20} />
-              </div>
+            >
+              <MdOutlineGroupAdd size={20} />
             </div>
-            {items.map((item) => (
-              <ConversationBox
-                key={item.id}
-                data={item}
-                selected={conversationId === item.id}
-              />
-            ))}
           </div>
-        </aside>
-      </>
+          {items.map((item) => (
+            <ConversationBox
+              key={item.id}
+              data={item}
+              selected={conversationId === item.id}
+            />
+          ))}
+        </div>
+      </aside>
+    </>
   );
 };
 
