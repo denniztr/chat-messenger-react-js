@@ -29,8 +29,6 @@
     "next-auth": "^4.24.5",
     "next-cloudinary": "^5.20.0",
     "next-superjson-plugin": "^0.6.2",
-    "node": "^21.6.1",
-    "node-gyp": "^10.0.1",
     "postcss": "^8.4.35",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0-rc2",
